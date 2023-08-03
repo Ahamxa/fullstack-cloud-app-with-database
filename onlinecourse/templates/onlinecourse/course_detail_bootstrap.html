@@ -47,14 +47,14 @@
                     <div class="card mt-1">
                         <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
                         <div class="card-body">{{lesson.content}} </div>
-                                <button class="btn btn-info" data-toggle="collapse" data-target="#exam">Start Exam</button>
+                                <button class="btn btn-info" data-toggle="collapse" data-target="#exam{{lesson.id}}">Start Exam</button>
 
-                            <div id="exam" class="collapse">
+                            <div id="exam{{lesson.id}}" class="collapse">
                                 {% if user.is_authenticated %}
                                 <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
                                     {% for q in lesson.question_set.all %}
                                     <div class="card mt-1">
-                                        <div class="card-header"><h5>{{ q.question_text}}</h5></div>
+                                        <div class="card-header"><h5>{{ q.question_text}}</h5> <p>Points: {{ q.grade}}</p></div>
                                         {% csrf_token %}
                                         <div class="form-group">
                                             {% for c in q.choice_set.all %}

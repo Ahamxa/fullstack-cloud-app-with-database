@@ -118,7 +118,7 @@ def submit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     
     # Get the associated enrollment object for the user and course
-    enrollment = course.enrollment_set.filter(user=user).first()
+    enrollment=Enrollment.objects.get(user=user, course=course)
     
     # Create a new submission object referring to the enrollment
     submission = Submission.objects.create(enrollment=enrollment)
@@ -157,22 +157,24 @@ def show_exam_result(request, course_id, submission_id):
     submission = get_object_or_404(Submission, pk=submission_id)
 
     # Get the selected choice IDs from the submission record
+    test=submission.choices.all()
+    print(test)
     selected_choice_ids = submission.choices.all().values_list('id', flat=True)
-
+    print(selected_choice_ids)
     # Calculate the total score and question results
     total_score = 0
+    score=0
     question_results = []
 
     for lession in course.lesson_set.all().order_by('id'):
         for question in lession.question_set.all().order_by('id'):
             selected_ids = [choice_id for choice_id in selected_choice_ids if choice_id in question.choice_set.values_list('id', flat=True)]
-
             # Check if the learner gets the score for the question
             is_correct = question.is_get_score(selected_ids)
-
             # Calculate the score for the question and add it to the total score
+            total_score+=question.grade
             if is_correct:
-                total_score += question.grade
+                score+= question.grade
 
             # Append question result to the list
             question_results.append({
@@ -181,16 +183,22 @@ def show_exam_result(request, course_id, submission_id):
                 'selected_ids': selected_ids,
                 'choices': question.choice_set.all()
             })
+            print(question_results)
     # You can also update the learner's score for this submission if needed
     submission.score = total_score
     submission.save()
+    percentage=(score/total_score)*100
 
     context = {
         'course': course,
         'submission': submission,
-        'total_score': total_score,
+        'score': score,
+        'total_score':total_score,
+        'percentage':percentage,
         'question_results': question_results
     }
+
+    print(context)
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
 
